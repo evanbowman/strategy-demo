@@ -3,12 +3,10 @@ function hex_tile(x, y, t)
    -- Interleave columns btwn layers; eats up two tile layers, but saves vram on
    -- the tile corners.
    local l = 1
-   local x_off = 0
    local y_off = 1
 
    if x % 2 == 0 then
       l = 2
-      x_off = 0
       y_off = 0
    end
 
@@ -17,14 +15,22 @@ function hex_tile(x, y, t)
 
    for j = y, y + 1 do
       for i = x, x + 3 do
-         tile(l, x_off + i + x * 2, y_off + j + y, cur)
+         tile(l, i + x * 2, y_off + j + y, cur)
          cur = cur + 1
       end
    end
 end
 
 function which_tile(x, y)
+   local l = 1
+   local y_off = 1
 
+   if x % 2 == 0 then
+      l = 2
+      y_off = 0
+   end
+
+   return (tile(l, x * 3, y_off + y * 2) - 1) / 8
 end
 
 cursor = { x=8, y=8 }
@@ -48,18 +54,39 @@ function main_loop(update, draw)
    end
 end
 
-function update(dt)
+tile_names = {
+   [0]="sea", [1]="grass"
+}
 
+function repr_tile(t)
+   local name = tile_names[t]
+   if name then
+      for i=0, 10 do
+         tile(0, i, 19, 0)
+      end
+      print(":" .. name, 0, 19)
+   end
+end
+
+function update_cursor()
    if btnp(5) then
       cursor.x = cursor.x + 1
    elseif btnp(4) then
       cursor.x = cursor.x - 1
-   end
-
-   if btnp(6) then
+   elseif btnp(6) then
       cursor.y = cursor.y - 1
    elseif btnp(7) then
       cursor.y = cursor.y + 1
+   else
+      return false
+   end
+   return true
+end
+
+function update(dt)
+
+   if update_cursor() then
+      repr_tile(which_tile(cursor.x, cursor.y))
    end
 
    if btnp(3) then
@@ -89,7 +116,7 @@ function draw()
    camera(cam.x, cam.y)
 end
 
-print("ram: " .. tostring(collectgarbage("count") * 1024), 3, 5)
+print("ram: " .. tostring(collectgarbage("count") * 1024), 1, 1)
 
 fade(0)
 
