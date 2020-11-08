@@ -16,6 +16,9 @@ local app = {
 
    scripts = {
       "main.lua",
+      "init_map.lua",
+      "map_explorer.lua",
+      "test.lua",
    },
 
    misc = {
